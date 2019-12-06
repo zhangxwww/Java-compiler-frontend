@@ -1,3 +1,8 @@
+"""
+!!! **DON't** change any comments in this file !!!
+
+"""
+
 import ply.lex as lex
 
 reserved = {

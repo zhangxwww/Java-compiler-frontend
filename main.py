@@ -15,4 +15,4 @@ log = logging.getLogger()
 if __name__ == '__main__':
     filename = sys.argv[1]
     s = open(filename).read()
-    node = parser.parse(s, lexer=lexer, debug=log)
+    root = parser.parse(s, lexer=lexer, debug=log)

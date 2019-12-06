@@ -1,5 +1,14 @@
+"""
+!!! **DON't** change any comments in this file !!!
+
+"""
+
 import ply.yacc as yacc
 
+"""
+!!! **DON't** delete the following import !!!
+
+"""
 from lexical import tokens
 
 
@@ -76,10 +85,12 @@ def p_compute_exp(p):
     'COMPUTE_EXP : TERM TERM_FOLLOW'
     p[0] = ASTNode('COMPUTE_EXP', p[1:])
 
+
 def p_term_follow(p):
     '''TERM_FOLLOW : BIN_OP EXP
                    | empty'''
     p[0] = ASTNode('TERM_FOLLOW', p[1:])
+
 
 def p_relation_exp(p):
     '''RELATION_EXP : REL_OP COMPUTE_EXP
@@ -130,6 +141,7 @@ def p_id_follow(p):
                  | lb integer rb
                  | empty'''
     p[0] = ASTNode('ID_FOLLOW', p[1:])
+
 
 def p_attribute(p):
     '''ATTRIBUTE : id ID_FOLLOW
