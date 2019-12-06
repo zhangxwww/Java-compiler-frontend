@@ -37,7 +37,13 @@ tokens = (
              'sub',
              'mul',
              'div',
+             'and',
+             'or',
              'assign',
+             'addassign',
+             'subassign',
+             'mulassign',
+             'divassign',
 
              # relation
              'equal',
@@ -68,7 +74,13 @@ t_add = r'\+'
 t_sub = r'-'
 t_mul = r'\*'
 t_div = r'/'
+t_and = r'&&'
+t_or = r'\|\|'
 t_assign = r'='
+t_addassign = r'\+='
+t_subassign = r'-='
+t_mulassign = r'\*='
+t_divassign = r'/='
 
 t_equal = r'=='
 t_neq = r'!='
@@ -117,4 +129,4 @@ def t_error(t):
     t.lexer.skip(1)
 
 
-lexer = lex.lex()
+lexer = lex.lex(debug=True)
