@@ -1,5 +1,5 @@
 """
-!!! **DON't** change any comments in this file !!!
+!!! **DON't** change any comment in this file !!!
 
 """
 
@@ -14,23 +14,29 @@ from lexical import tokens
 
 class ASTNode:
     def __init__(self, type_, children=None):
-        if children is None:
-            children = []
         self.type = type_
         self.children = children
+
+    def __repr__(self):
+        return '<{}>'.format(self.type)
 
 
 start = 'PROGRAM'
 
+precedence = (
+    ('left', 'assign'),
+    ('left', 'or'),
+    ('left', 'and'),
+    ('left', 'equal', 'neq'),
+    ('left', 'less', 'greater', 'leq', 'geq'),
+    ('left', 'add', 'sub'),
+    ('left', 'mul', 'div')
+)
+
 
 def p_program(p):
-    'PROGRAM : CLASS_CONTAINER'
-    p[0] = ASTNode('PROGRAM', [p[1]])
-
-
-def p_class_container(p):
-    'CLASS_CONTAINER : PERMISSION class id lc DEFINE_LIST rc'
-    p[0] = ASTNode('CLASS_CONTAINER', [p[1], p[3], p[5]])
+    'PROGRAM : PERMISSION class id lc DEFINE_LIST rc'
+    p[0] = ASTNode('PROGRAM', [p[1], p[3], p[5]])
 
 
 def p_permission(p):
@@ -41,9 +47,16 @@ def p_permission(p):
 
 
 def p_define_list(p):
-    '''DEFINE_LIST : VAR_DEFINE
-                   | FUNC_DEFINE'''
-    p[0] = ASTNode('DEFINE_LIST', p[1])
+    '''DEFINE_LIST : VAR_DEFINE DEFINE_LIST
+                   | FUNC_DEFINE DEFINE_LIST
+                   | empty'''
+    if len(p) == 3:
+        children = [p[1]]
+        if p[2].children[0] is not None:
+            children += p[2].children[:]
+    else:
+        children = [None]
+    p[0] = ASTNode('DEFINE_LIST', children)
 
 
 def p_var_define(p):
@@ -58,7 +71,11 @@ def p_func_define(p):
 
 def p_type(p):
     'TYPE : TYPE_BEGIN TYPE_FOLLOW'
-    p[0] = ASTNode('TYPE', p[1:])
+    t = p[1].children[0]
+    f = p[2].children[0]
+    if f is not None:
+        t = t + f
+    p[0] = ASTNode('TYPE', [t])
 
 
 def p_type_begin(p):
@@ -67,39 +84,55 @@ def p_type_begin(p):
                   | int
                   | string
                   | void'''
-    p[0] = ASTNode('TYPE', [p[1]])
+    p[0] = ASTNode('TYPE_BEGIN', [p[1]])
 
 
 def p_type_follow(p):
     '''TYPE_FOLLOW : lb rb
                    | empty'''
-    p[0] = ASTNode('TYPE_FOLLOW', p[1:])
+    if len(p) == 3:
+        children = [p[1] + p[2]]
+    else:
+        children = [None]
+    p[0] = ASTNode('TYPE_FOLLOW', children)
 
 
 def p_exp(p):
     'EXP : COMPUTE_EXP RELATION_EXP'
-    p[0] = ASTNode('EXP', p[1:])
+    children = [p[1]]
+    if p[2].children[0] is not None:
+        children += p[2].children[:]
+    p[0] = ASTNode('EXP', children)
 
 
 def p_compute_exp(p):
-    'COMPUTE_EXP : TERM TERM_FOLLOW'
-    p[0] = ASTNode('COMPUTE_EXP', p[1:])
+    'COMPUTE_EXP : TERM_BEFORE TERM'
+    t = p[2].children[:]
+    f = p[1].children[:]
+    if f[0] is not None:
+        t = f + t
+    p[0] = ASTNode('COMPUTE_EXP', t)
 
 
-def p_term_follow(p):
-    '''TERM_FOLLOW : BIN_OP EXP
+def p_term_before(p):
+    '''TERM_BEFORE : COMPUTE_EXP BIN_OP
                    | empty'''
-    p[0] = ASTNode('TERM_FOLLOW', p[1:])
+    if len(p) == 3:
+        children = [p[1], p[2].children[0]]
+    else:
+        children = [None]
+    p[0] = ASTNode('TERM_BEFORE', children)
 
 
 def p_relation_exp(p):
     '''RELATION_EXP : REL_OP COMPUTE_EXP
                     | empty'''
-    p[0] = ASTNode('RELATION_EXP', p[1:])
+    children = [p[1].children[0], p[2]] if len(p) == 3 else [None]
+    p[0] = ASTNode('RELATION_EXP', children)
 
 
 def p_term(p):
-    '''TERM : lp EXP rp
+    '''TERM : lp COMPUTE_EXP rp
             | id ID_FOLLOW
             | chr
             | str
@@ -107,7 +140,7 @@ def p_term(p):
             | null
             | true
             | false'''
-    p[0] = ASTNode('TERM', p[1:] if len(p) < 3 else [p[2]])
+    p[0] = ASTNode('TERM', p[1:] if len(p) < 4 else [p[2]])
 
 
 def p_bin_op(p):
@@ -117,11 +150,7 @@ def p_bin_op(p):
               | div
               | and
               | or
-              | assign
-              | addassign
-              | subassign
-              | mulassign
-              | divassign'''
+              | assign'''
     p[0] = ASTNode('BIN_OP', p[1:])
 
 
@@ -135,18 +164,24 @@ def p_rel_op(p):
     p[0] = ASTNode('REL_OP', p[1:])
 
 
-def p_id_follow(p):
-    '''ID_FOLLOW : lp ARGS rp
-                 | dot ATTRIBUTE
-                 | lb integer rb
-                 | empty'''
-    p[0] = ASTNode('ID_FOLLOW', p[1:])
+def p_id_follow_call(p):
+    'ID_FOLLOW : lp ARGS rp'
+    p[0] = ASTNode('ID_FOLLOW_CALL', p[2].children[:])
 
 
-def p_attribute(p):
-    '''ATTRIBUTE : id ID_FOLLOW
-                 | empty'''
-    p[0] = ASTNode('ATTRIBUTE', p[1:])
+def p_id_follow_dot(p):
+    'ID_FOLLOW : dot id ID_FOLLOW'
+    p[0] = ASTNode('ID_FOLLOW_DOT', p[2:])
+
+
+def p_id_index(p):
+    'ID_FOLLOW : lb integer rb'
+    p[0] = ASTNode('ID_FOLLOW_INDEX', p[2])
+
+
+def p_id_follow_empty(p):
+    'ID_FOLLOW : empty'
+    p[0] = ASTNode('ID_FOLLOW_EMPTY', None)
 
 
 def p_static(p):
@@ -158,12 +193,16 @@ def p_static(p):
 def p_params(p):
     '''PARAMS : PARAM_LIST
               | empty'''
-    p[0] = ASTNode('PARAMS', p[1:])
+    children = p[1].children[:] if p[1] is not None else None
+    p[0] = ASTNode('PARAMS', children)
 
 
 def p_param_list(p):
     'PARAM_LIST : PARAM PARAM_FOLLOW'
-    p[0] = ASTNode('PARAM_LIST', p[1:])
+    children = [p[1]]
+    if p[2].children[0] is not None:
+        children += p[2].children[:]
+    p[0] = ASTNode('PARAM_LIST', children)
 
 
 def p_param(p):
@@ -174,29 +213,54 @@ def p_param(p):
 def p_param_follow(p):
     '''PARAM_FOLLOW : comma PARAM PARAM_FOLLOW
                     | empty'''
-    p[0] = ASTNode('PARAM_FOLLOW', p[1:])
+    if len(p) == 4:
+        children = [p[2]]
+        if p[3].children[0] is not None:
+            children += p[3].children[:]
+    else:
+        children = [None]
+    p[0] = ASTNode('PARAM_FOLLOW', children)
 
 
 def p_block(p):
     'BLOCK : lc LOCAL_DEFINE_LIST CODE_LIST rc'
-    p[0] = ASTNode('BLOCK', p[2:4])
+    children = []
+    if p[2].children[0] is not None:
+        children += [p[2]]
+    if p[3].children[0] is not None:
+        children += [p[3]]
+    if len(children) == 0:
+        children = None
+    p[0] = ASTNode('BLOCK', children)
 
 
 def p_local_define_list(p):
     '''LOCAL_DEFINE_LIST : LOCAL_VAR_DEFINE LOCAL_DEFINE_LIST
                          | empty'''
-    p[0] = ASTNode('LOCAL_DEFINE_LIST', p[1:])
+    if len(p) > 2:
+        children = [p[1]]
+        if p[2].children[0] is not None:
+            children += p[2].children[:]
+    else:
+        children = [None]
+    p[0] = ASTNode('LOCAL_DEFINE_LIST', children)
 
 
 def p_local_var_define(p):
     'LOCAL_VAR_DEFINE : TYPE id assign EXP semi'
-    p[0] = ASTNode('LOCAL_VAR_DEFINE', p[1:3])
+    p[0] = ASTNode('LOCAL_VAR_DEFINE', p[1:3] + [p[4]])
 
 
 def p_code_list(p):
     '''CODE_LIST : CODE CODE_LIST
                  | empty'''
-    p[0] = ASTNode('CODE_LIST', p[1:])
+    if len(p) == 3:
+        children = [p[1]]
+        if p[2].children[0] is not None:
+            children += p[2].children[:]
+    else:
+        children = [None]
+    p[0] = ASTNode('CODE_LIST', children)
 
 
 def p_code(p):
@@ -209,12 +273,12 @@ def p_code(p):
 
 def p_normal_state_assign(p):
     'NORMAL_STATE : id ID_FOLLOW assign EXP semi'
-    p[0] = ASTNode('NORMAL_STATE_ASSIGN', [p[1], p[3]])
+    p[0] = ASTNode('NORMAL_STATE_ASSIGN', [p[1], p[2], p[4]])
 
 
 def p_normal_state_call(p):
     'NORMAL_STATE : id ID_FOLLOW semi'
-    p[0] = ASTNode('NORMAL_STATE_CALL', [p[1], p[3]])
+    p[0] = ASTNode('NORMAL_STATE_CALL', [p[1], p[2]])
 
 
 def p_normal_state_control(p):
@@ -252,30 +316,41 @@ def p_while_loop(p):
 
 def p_return_state(p):
     'RETURN_STATE : return RETURN_FOLLOW semi'
-    p[0] = ASTNode('RETURN_STATE', [p[2]])
+    p[0] = ASTNode('RETURN_STATE', p[2].children[:])
 
 
 def p_return_follow(p):
     '''RETURN_FOLLOW : EXP
                      | empty'''
-    p[0] = ASTNode('RETURN FOLLOW', p[1:])
+    children = p[1:] if p[1] is not None else []
+    p[0] = ASTNode('RETURN_FOLLOW', children)
 
 
 def p_args(p):
     '''ARGS : ARG_LIST
             | empty'''
-    p[0] = ASTNode('ARGS', p[1:])
+    children = p[1].children[:] if p[1] is not None else []
+    p[0] = ASTNode('ARGS', children)
 
 
 def p_arg_list(p):
     'ARG_LIST : EXP ARG_FOLLOW'
-    p[0] = ASTNode('ARG_LIST', p[1:])
+    children = [p[1]]
+    if p[2].children[0] is not None:
+        children += p[2].children[:]
+    p[0] = ASTNode('ARG_LIST', children)
 
 
 def p_arg_follow(p):
-    '''ARG_FOLLOW : comma id ID_FOLLOW ARG_FOLLOW
+    '''ARG_FOLLOW : comma EXP ARG_FOLLOW
                   | empty'''
-    p[0] = ASTNode('ARG_FOLLOW', p[2:] if len(p) > 2 else p[1:])
+    if len(p) == 4:
+        children = [p[2]]
+        if p[3].children[0] is not None:
+            children += p[3].children[:]
+    else:
+        children = [None]
+    p[0] = ASTNode('ARG_FOLLOW', children)
 
 
 def p_empty(p):
@@ -284,17 +359,7 @@ def p_empty(p):
 
 
 def p_error(p):
-    print('Syntax error!')
+    print('Syntax error! {}'.format(p))
 
-
-precedence = (
-    ('left', 'assign'),
-    ('left', 'or'),
-    ('left', 'and'),
-    ('left', 'equal', 'neq'),
-    ('left', 'less', 'greater', 'leq', 'geq'),
-    ('left', 'add', 'sub'),
-    ('left', 'mul', 'div')
-)
 
 parser = yacc.yacc(debug=True)

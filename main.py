@@ -16,3 +16,4 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     s = open(filename).read()
     root = parser.parse(s, lexer=lexer, debug=log)
+    print(root)

@@ -1,5 +1,5 @@
 """
-!!! **DON't** change any comments in this file !!!
+!!! **DON't** change any comment in this file !!!
 
 """
 
@@ -45,10 +45,6 @@ tokens = (
              'and',
              'or',
              'assign',
-             'addassign',
-             'subassign',
-             'mulassign',
-             'divassign',
 
              # relation
              'equal',
@@ -82,10 +78,6 @@ t_div = r'/'
 t_and = r'&&'
 t_or = r'\|\|'
 t_assign = r'='
-t_addassign = r'\+='
-t_subassign = r'-='
-t_mulassign = r'\*='
-t_divassign = r'/='
 
 t_equal = r'=='
 t_neq = r'!='
