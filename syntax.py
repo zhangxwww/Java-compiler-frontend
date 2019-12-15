@@ -18,8 +18,17 @@ class ASTNode:
         self.children = children
 
     def __repr__(self):
-        return '<{}>'.format(self.type)
-
+        res = '<{}>'.format(self.type) + '\n'
+        child_res = []
+        for child in self.children:
+            child_res.append(child.__repr__())
+        for r in child_res:
+            res = res + '-'
+            lines = r.split('\n')
+            for line in lines:
+                line = '  ' + line
+                res = res + line + '\n'
+        return res
 
 start = 'PROGRAM'
 
