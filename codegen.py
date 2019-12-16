@@ -75,10 +75,10 @@ def GenerateCode(node):
         pass
 
     if node.type == 'EXP':
-        res = res + ''.join([GenerateCode(c) for c in node.children])
+        res = res + '(%s)' % ''.join([GenerateCode(c) for c in node.children])
 
     if node.type == 'COMPUTE_EXP':
-        res = res + ''.join([GenerateCode(c) for c in node.children])
+        res = res + '(%s)' % ''.join([GenerateCode(c) for c in node.children])
 
     if node.type == 'TERM_BEFORE':
         res = res + ''.join([GenerateCode(c) for c in node.children])
