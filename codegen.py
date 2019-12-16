@@ -146,7 +146,19 @@ def GenerateCode(node):
         res = res + '%s%s=%s;' % tuple([GenerateCode(c) for c in node.children])
 
     if node.type == 'NORMAL_STATE_CALL':
-        res = res + '%s%s;' % (GenerateCode(node.children[0]), GenerateCode(node.children[1]))
+        is_system_out_println = False
+        try:
+            if node.children[0] == 'System':
+                if node.children[1].type == 'ID_FOLLOW_DOT':
+                    if node.children[1].children[0] == 'out':
+                        if node.children[1].children[1].type == 'ID_FOLLOW_DOT':
+                            if node.children[1].children[1].children[0] == 'println':
+                                res = res + 'console.log%s;' % (GenerateCode(node.children[1].children[1].children[1]))
+                                is_system_out_println = True
+        except:
+            pass
+        if not is_system_out_println:
+            res = res + '%s%s;' % (GenerateCode(node.children[0]), GenerateCode(node.children[1]))
 
     if node.type == 'NORMAL_STATE_CONTROL':
         res = res + GenerateCode(node.children[0])
@@ -175,11 +187,6 @@ def GenerateCode(node):
 
     if node.type == 'EMPTY':
         pass
-
-    regex = re.match(r'System\.out\.println\((.*)\);', res)
-    if regex is not None:
-        res = 'console.log(%s);' % (regex.groups()[0])
-
     return res
 
 
