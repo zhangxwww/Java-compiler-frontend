@@ -18,7 +18,7 @@ public class Palindrome {
 
 	private int hello(int a, int b) {
 	    int c = a + b;
-	    c = c - (1 * a) + b;
+	    c = (c - 1) * a + b;
 	    System.out.println(c);
 	    return c;
 	}

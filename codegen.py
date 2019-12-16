@@ -65,7 +65,7 @@ def GenerateCode(node):
             res = res + GenerateCode(child) + ' '
 
     if node.type == 'VAR_DEFINE':
-        res = res + 'var %s=%s' % (node.children[1], GenerateCode(node.children[2]))
+        res = res + 'var %s=%s;' % (node.children[1], GenerateCode(node.children[2]))
 
     if node.type == 'FUNC_DEFINE':
         res = res + 'function %s(%s)%s' % (
@@ -105,7 +105,7 @@ def GenerateCode(node):
     if node.type == 'ID_FOLLOW_CALL':
         leng = len(node.children)
         res = res + '(%s)' % ''.join(
-            [GenerateCode(c) + (',' if i == leng else '') for (i, c) in enumerate(node.children)])
+            [GenerateCode(c) + (',' if i < leng - 1 else '') for (i, c) in enumerate(node.children)])
 
     if node.type == 'ID_FOLLOW_DOT':
         res = res + '.%s%s' % (GenerateCode(node.children[0]), GenerateCode(node.children[1]))
@@ -120,14 +120,15 @@ def GenerateCode(node):
         pass
 
     if node.type == 'PARAMS':
-        leng = len(node.children)
-        res = res + ''.join([GenerateCode(c) + (',' if i == leng else '') for (i, c) in enumerate(node.children)])
+        if node.children:
+            leng = len(node.children)
+            res = res + ''.join([GenerateCode(c) + (',' if i < leng - 1 else '') for (i, c) in enumerate(node.children)])
 
     if node.type == 'PARAM':
         res = res + GenerateCode(node.children[1])
 
     if node.type == 'BLOCK':
-        res = res + '{%s%s}' % (GenerateCode(node.children[0]), GenerateCode(node.children[1]))
+        res = res + '{%s}' % ''.join([GenerateCode(c) for c in node.children])
 
     if node.type == 'LOCAL_DEFINE_LIST':
         return ' '.join([GenerateCode(c) for c in node.children])
@@ -142,7 +143,7 @@ def GenerateCode(node):
         res = res + GenerateCode(node.children[0])
 
     if node.type == 'NORMAL_STATE_ASSIGN':
-        res = res + '%s%s=%s;' % (node.children[0], node.children[1], node.children[2])
+        res = res + '%s%s=%s;' % tuple([GenerateCode(c) for c in node.children])
 
     if node.type == 'NORMAL_STATE_CALL':
         res = res + '%s%s;' % (GenerateCode(node.children[0]), GenerateCode(node.children[1]))
@@ -151,23 +152,26 @@ def GenerateCode(node):
         res = res + GenerateCode(node.children[0])
 
     if node.type == 'SELECT_STATE':
-        res = res + 'if(%s){%s}%s' % (node.children[0], node.children[1], node.children[2])
+        res = res + 'if(%s){%s}%s' % tuple([GenerateCode(c) for c in node.children])
 
     if node.type == 'SELECT_FOLLOW':
-        if node.children[0].type != 'EMPTY':
+        if node.children[0] is not None and node.children[0].type != 'EMPTY':
             res = res + 'else{%s}' % GenerateCode(node.children[0])
 
     if node.type == 'LOOP_STATE':
         return GenerateCode(node.children[0])
 
     if node.type == 'FOR_LOOP':
-        res = 'for(%s){%s}' % (GenerateCode(node.children[0]), GenerateCode(node.children[1]))
+        res = 'for(%s;%s;%s){%s}' % tuple([GenerateCode(c) for c in node.children])
 
     if node.type == 'WHILE_LOOP':
         res = 'while(%s){%s}' % (GenerateCode(node.children[0]), GenerateCode(node.children[1]))
 
     if node.type == 'RETURN_STATE':
-        res = res + 'return %s' % [GenerateCode(c) for c in node.children]
+        if len(node.children) == 0:
+            res = res + 'return;'
+        else:
+            res = res + 'return %s;' % GenerateCode(node.children[0])
 
     if node.type == 'EMPTY':
         pass
