@@ -52,7 +52,10 @@ def GenerateCode(node):
         return ''
 
     if not isinstance(node, ASTNode):
-        return str(node)
+        if str(node) == 'input':
+            return 'prompt'
+        else:
+            return str(node)
 
     if node.type == 'PROGRAM':
         res = res + GenerateCode(node.children[2])
@@ -108,7 +111,15 @@ def GenerateCode(node):
             [GenerateCode(c) + (',' if i < leng - 1 else '') for (i, c) in enumerate(node.children)])
 
     if node.type == 'ID_FOLLOW_DOT':
-        res = res + '.%s%s' % (GenerateCode(node.children[0]), GenerateCode(node.children[1]))
+        is_length_call = False
+        try:
+            if node.children[0] == 'length' and node.children[1].type == 'ID_FOLLOW_CALL':
+                res = res + '.length'
+                is_length_call = True
+        except:
+            pass
+        if not is_length_call:
+            res = res + '.%s%s' % (GenerateCode(node.children[0]), GenerateCode(node.children[1]))
 
     if node.type == 'ID_INDEX':
         res = res + '[%s]' % GenerateCode(node.children[0])

@@ -45,6 +45,7 @@ tokens = (
              'and',
              'or',
              'assign',
+             'inc',
 
              # relation
              'equal',
@@ -78,6 +79,7 @@ t_div = r'/'
 t_and = r'&&'
 t_or = r'\|\|'
 t_assign = r'='
+t_inc = r'\+\+'
 
 t_equal = r'=='
 t_neq = r'!='
