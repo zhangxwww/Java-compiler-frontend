@@ -34,7 +34,10 @@ reserved = {
     'true': 'true',
     'false': 'false',
     'null': 'null',
+    'import': 'import'
 }
+
+literals = ['(', ')', '[', ']', '{', '}']
 
 tokens = (
              # operator

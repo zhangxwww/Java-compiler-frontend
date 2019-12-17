@@ -293,8 +293,8 @@ def p_normal_state_call(p):
 
 
 def p_normal_state_control(p):
-    '''NORMAL_STATE : break
-                    | continue'''
+    '''NORMAL_STATE : break semi
+                    | continue semi'''
     p[0] = ASTNode('NORMAL_STATE_CONTROL', p[1:])
 
 
