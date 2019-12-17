@@ -54,6 +54,10 @@ def GenerateCode(node):
     if not isinstance(node, ASTNode):
         if str(node) == 'input':
             return 'prompt'
+        elif str(node) == '==':
+            return '==='
+        elif str(node) == '!=':
+            return '!=='
         else:
             return str(node)
 
@@ -72,7 +76,7 @@ def GenerateCode(node):
 
     if node.type == 'FUNC_DEFINE':
         res = res + 'function %s(%s)%s' % (
-        node.children[3], GenerateCode(node.children[4]), GenerateCode(node.children[5]))
+            node.children[3], GenerateCode(node.children[4]), GenerateCode(node.children[5]))
 
     if node.type == 'TYPE':
         pass
@@ -133,7 +137,8 @@ def GenerateCode(node):
     if node.type == 'PARAMS':
         if node.children:
             leng = len(node.children)
-            res = res + ''.join([GenerateCode(c) + (',' if i < leng - 1 else '') for (i, c) in enumerate(node.children)])
+            res = res + ''.join(
+                [GenerateCode(c) + (',' if i < leng - 1 else '') for (i, c) in enumerate(node.children)])
 
     if node.type == 'PARAM':
         res = res + GenerateCode(node.children[1])
@@ -196,12 +201,18 @@ def GenerateCode(node):
         else:
             res = res + 'return %s;' % GenerateCode(node.children[0])
 
+    if node.type == 'ARRAY_DEFINE' or node.type == 'LOCAL_ARRAY_DEFINE':
+        if node.children[0].children[0] != node.children[2].children[0]:
+            print('Type Error!')
+            return
+        res = res + '%s=new Array(%s);' % (GenerateCode(node.children[1]), GenerateCode(node.children[3]))
+
     if node.type == 'EMPTY':
         pass
     return res
 
 
 def GenerateProgram(root):
-    res = GenerateCode(root);
+    res = GenerateCode(root)
     res = res + 'main();'
     return res

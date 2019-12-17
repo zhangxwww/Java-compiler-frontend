@@ -32,6 +32,7 @@ class ASTNode:
         '''
         return res
 
+
 start = 'PROGRAM'
 
 precedence = (
@@ -60,6 +61,7 @@ def p_permission(p):
 def p_define_list(p):
     '''DEFINE_LIST : VAR_DEFINE DEFINE_LIST
                    | FUNC_DEFINE DEFINE_LIST
+                   | ARRAY_DEFINE DEFINE_LIST
                    | empty'''
     if len(p) == 3:
         children = [p[1]]
@@ -73,6 +75,11 @@ def p_define_list(p):
 def p_var_define(p):
     'VAR_DEFINE : TYPE id assign EXP semi'
     p[0] = ASTNode('VAR_DEFINE', [p[1], p[2], p[4]])
+
+
+def p_array_define(p):
+    'ARRAY_DEFINE : TYPE_BEGIN lb rb id assign new TYPE_BEGIN lb EXP rb semi'
+    p[0] = ASTNode('ARRAY_DEFINE', [p[1], p[4], p[7], p[9]])
 
 
 def p_func_define(p):
@@ -247,6 +254,7 @@ def p_block(p):
 
 def p_local_define_list(p):
     '''LOCAL_DEFINE_LIST : LOCAL_VAR_DEFINE LOCAL_DEFINE_LIST
+                         | LOCAL_ARRAY_DEFINE LOCAL_DEFINE_LIST
                          | empty'''
     if len(p) > 2:
         children = [p[1]]
@@ -260,6 +268,11 @@ def p_local_define_list(p):
 def p_local_var_define(p):
     'LOCAL_VAR_DEFINE : TYPE id assign EXP semi'
     p[0] = ASTNode('LOCAL_VAR_DEFINE', p[1:3] + [p[4]])
+
+
+def p_local_array_define(p):
+    'LOCAL_ARRAY_DEFINE : TYPE_BEGIN lb rb id assign new TYPE_BEGIN lb EXP rb semi'
+    p[0] = ASTNode('LOCAL_ARRAY_DEFINE', [p[1], p[4], p[7], p[9]])
 
 
 def p_code_list(p):
