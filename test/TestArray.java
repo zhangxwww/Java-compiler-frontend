@@ -11,7 +11,7 @@ public class TestArray {
         printArray(a);
     }
 
-    private void printArray(int[] array) {
+    private static void printArray(int[] array) {
         int len = array.length;
         int i = 0;
         for (i = 0; i < len; i = i + 1) {
@@ -19,7 +19,7 @@ public class TestArray {
         }
     }
 
-    private void sort(int[] array) {
+    private static void sort(int[] array) {
         int len = array.length;
         int i = 0;
         int j = 0;
@@ -28,8 +28,8 @@ public class TestArray {
             for (j = 0; j < len - i - 1; j = j + 1) {
                 if (array[j + 1] < array[j]) {
                     temp = array[j];
-                    array[j] = array[i];
-                    array[i] = temp;
+                    array[j] = array[j + 1];
+                    array[j + 1] = temp;
                 }
             }
         }
