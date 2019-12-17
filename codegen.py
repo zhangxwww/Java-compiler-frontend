@@ -82,10 +82,10 @@ def GenerateCode(node):
         pass
 
     if node.type == 'EXP':
-        res = res + '(%s)' % ''.join([GenerateCode(c) for c in node.children])
+        res = res + '%s' % ''.join([GenerateCode(c) for c in node.children])
 
     if node.type == 'COMPUTE_EXP':
-        res = res + '(%s)' % ''.join([GenerateCode(c) for c in node.children])
+        res = res + '%s' % ''.join([GenerateCode(c) for c in node.children])
 
     if node.type == 'TERM_BEFORE':
         res = res + ''.join([GenerateCode(c) for c in node.children])
@@ -108,6 +108,9 @@ def GenerateCode(node):
 
     if node.type == 'REL_OP':
         res = res + GenerateCode(node.children[0])
+
+    if node.type == 'ID_FOLLOW_INDEX':
+        res = res + '[%s]' % GenerateCode(node.children[0])
 
     if node.type == 'ID_FOLLOW_CALL':
         leng = len(node.children)

@@ -36,13 +36,13 @@ class ASTNode:
 start = 'PROGRAM'
 
 precedence = (
-    ('left', 'assign'),
     ('left', 'or'),
     ('left', 'and'),
     ('left', 'equal', 'neq'),
     ('left', 'less', 'greater', 'leq', 'geq'),
     ('left', 'add', 'sub'),
-    ('left', 'mul', 'div')
+    ('left', 'mul', 'div'),
+    ('left', 'assign')
 )
 
 
@@ -193,8 +193,8 @@ def p_id_follow_dot(p):
 
 
 def p_id_index(p):
-    'ID_FOLLOW : lb integer rb'
-    p[0] = ASTNode('ID_FOLLOW_INDEX', p[2])
+    'ID_FOLLOW : lb EXP rb'
+    p[0] = ASTNode('ID_FOLLOW_INDEX', [p[2]])
 
 
 def p_id_follow_empty(p):
