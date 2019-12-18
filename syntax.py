@@ -76,7 +76,7 @@ def p_var_define(p):
 
 
 def p_func_define(p):
-    'FUNC_DEFINE : PERMISSION STATIC TYPE id lp PARAMS rp BLOCK'
+    'FUNC_DEFINE : PERMISSION STATIC TYPE id ID_FOLLOW lp PARAMS rp lc BLOCK rc'
     p[0] = ASTNode('FUNC_DEFINE', [p[1], p[2], p[3], p[4], p[6], p[8]])
 
 
@@ -108,50 +108,25 @@ def p_type_follow(p):
     p[0] = ASTNode('TYPE_FOLLOW', children)
 
 
-def p_exp(p):
-    'EXP : COMPUTE_EXP RELATION_EXP'
-    children = [p[1]]
-    if p[2].children[0] is not None:
-        children += p[2].children[:]
-    p[0] = ASTNode('EXP', children)
+def p_exp_1(p):
+    '''EXP : EXP BIN_OP EXP
+         | lp EXP rp'''
+    p[0] = ASTNode('EXP', [p[1],p[2].children[0],p[3]])
 
-
-def p_compute_exp(p):
-    'COMPUTE_EXP : TERM_BEFORE TERM'
-    t = p[2].children[:]
-    f = p[1].children[:]
-    if f[0] is not None:
-        t = f + t
-    p[0] = ASTNode('COMPUTE_EXP', t)
-
-
-def p_term_before(p):
-    '''TERM_BEFORE : COMPUTE_EXP BIN_OP
-                   | empty'''
+def p_exp_2(p):
+    '''EXP : id ID_FOLLOW
+           | integer
+           | chr
+           | str
+           | null
+           | true
+           | false'''
     if len(p) == 3:
-        children = [p[1], p[2].children[0]]
+        p[0] = ASTNode('EXP', [p[1],p[2]])
     else:
-        children = [None]
-    p[0] = ASTNode('TERM_BEFORE', children)
+        p[0] = ASTNode('EXP', [p[1]])
 
 
-def p_relation_exp(p):
-    '''RELATION_EXP : REL_OP COMPUTE_EXP
-                    | empty'''
-    children = [p[1].children[0], p[2]] if len(p) == 3 else [None]
-    p[0] = ASTNode('RELATION_EXP', children)
-
-
-def p_term(p):
-    '''TERM : lp COMPUTE_EXP rp
-            | id ID_FOLLOW
-            | chr
-            | str
-            | integer
-            | null
-            | true
-            | false'''
-    p[0] = ASTNode('TERM', p[1:] if len(p) < 4 else [p[2]])
 
 
 def p_bin_op(p):
@@ -164,15 +139,6 @@ def p_bin_op(p):
               | assign'''
     p[0] = ASTNode('BIN_OP', p[1:])
 
-
-def p_rel_op(p):
-    '''REL_OP : equal
-              | neq
-              | less
-              | greater
-              | leq
-              | geq'''
-    p[0] = ASTNode('REL_OP', p[1:])
 
 
 def p_id_follow_call(p):
@@ -234,27 +200,21 @@ def p_param_follow(p):
 
 
 def p_block(p):
-    'BLOCK : lc LOCAL_DEFINE_LIST CODE_LIST rc'
+    '''BLOCK : LOCAL_VAR_DEFINE BLOCK
+           | NORMAL_STATE_WITHOUT_SEMI semi BLOCK 
+           | SELECT_STATE BLOCK
+           | LOOP_STATE BLOCK
+           | RETURN_STATE BLOCK
+           | CONTROL_STATE BLOCK
+           | empty'''
     children = []
-    if p[2].children[0] is not None:
-        children += [p[2]]
-    if p[3].children[0] is not None:
-        children += [p[3]]
+    if p[1].children[0] is not None:
+        children += [p[1]]
+    if p[len(p)-1].children[0] is not None:
+        children += [p[len(p)-1]]
     if len(children) == 0:
         children = None
     p[0] = ASTNode('BLOCK', children)
-
-
-def p_local_define_list(p):
-    '''LOCAL_DEFINE_LIST : LOCAL_VAR_DEFINE LOCAL_DEFINE_LIST
-                         | empty'''
-    if len(p) > 2:
-        children = [p[1]]
-        if p[2].children[0] is not None:
-            children += p[2].children[:]
-    else:
-        children = [None]
-    p[0] = ASTNode('LOCAL_DEFINE_LIST', children)
 
 
 def p_local_var_define(p):
@@ -262,49 +222,32 @@ def p_local_var_define(p):
     p[0] = ASTNode('LOCAL_VAR_DEFINE', p[1:3] + [p[4]])
 
 
-def p_code_list(p):
-    '''CODE_LIST : CODE CODE_LIST
-                 | empty'''
-    if len(p) == 3:
-        children = [p[1]]
-        if p[2].children[0] is not None:
-            children += p[2].children[:]
-    else:
-        children = [None]
-    p[0] = ASTNode('CODE_LIST', children)
-
-
-def p_code(p):
-    '''CODE : NORMAL_STATE
-            | SELECT_STATE
-            | LOOP_STATE
-            | RETURN_STATE'''
-    p[0] = ASTNode('CODE', p[1:])
-
-
 def p_normal_state_assign(p):
-    'NORMAL_STATE : id ID_FOLLOW assign EXP semi'
+    'NORMAL_STATE_WITHOUT_SEMI : id ID_FOLLOW assign EXP'
     p[0] = ASTNode('NORMAL_STATE_ASSIGN', [p[1], p[2], p[4]])
 
 
 def p_normal_state_call(p):
-    'NORMAL_STATE : id ID_FOLLOW semi'
+    'NORMAL_STATE_WITHOUT_SEMI : id ID_FOLLOW'
     p[0] = ASTNode('NORMAL_STATE_CALL', [p[1], p[2]])
 
+def p_normal_state_empty(p):
+    'NORMAL_STATE_WITHOUT_SEMI : empty'
+    pass
 
-def p_normal_state_control(p):
-    '''NORMAL_STATE : break semi
+def p_control_state(p):
+    '''CONTROL_STATE : break semi
                     | continue semi'''
-    p[0] = ASTNode('NORMAL_STATE_CONTROL', p[1:])
+    p[0] = ASTNode('CONTROL_STATE', p[1:])
 
 
 def p_select_state(p):
-    'SELECT_STATE : if lp EXP rp lc CODE_LIST rc SELECT_FOLLOW'
+    'SELECT_STATE : if lp EXP rp lc BLOCK rc SELECT_FOLLOW'
     p[0] = ASTNode('SELECT_STATE', [p[3], p[6], p[8]])
 
 
 def p_select_follow(p):
-    '''SELECT_FOLLOW : else lc CODE_LIST rc
+    '''SELECT_FOLLOW : else lc BLOCK rc
                      | empty'''
     p[0] = ASTNode('SELECT_FOLLOW', [p[3]] if len(p) > 2 else p[1:])
 
@@ -316,12 +259,12 @@ def p_loop_state(p):
 
 
 def p_for_loop(p):
-    'FOR_LOOP : for lp EXP semi EXP semi EXP rp lc CODE_LIST rc'
+    'FOR_LOOP : for lp EXP semi EXP semi EXP rp lc BLOCK rc'
     p[0] = ASTNode('FOR_LOOP', [p[3], p[5], p[7], p[10]])
 
 
 def p_while_loop(p):
-    'WHILE_LOOP : while lp EXP rp lc CODE_LIST rc'
+    'WHILE_LOOP : while lp EXP rp lc BLOCK rc'
     p[0] = ASTNode('WHILE_LOOP', [p[3], p[6]])
 
 
