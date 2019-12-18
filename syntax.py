@@ -47,8 +47,14 @@ precedence = (
 
 
 def p_program(p):
-    'PROGRAM : PERMISSION class id lc DEFINE_LIST rc'
-    p[0] = ASTNode('PROGRAM', [p[1], p[3], p[5]])
+    'PROGRAM : IMPORT_STATE PERMISSION class id lc DEFINE_LIST rc'
+    p[0] = ASTNode('PROGRAM', [p[2], p[4], p[6]])
+
+def p_import_state(p):
+    '''IMPORT_STATE : empty
+                    | import id ID_FOLLOW semi'''
+    if len(p) > 2:
+        p[0] = ASTNode('IMPORT_STATE', p[2:])
 
 
 def p_permission(p):
@@ -306,8 +312,8 @@ def p_normal_state_call(p):
 
 
 def p_normal_state_control(p):
-    '''NORMAL_STATE : break
-                    | continue'''
+    '''NORMAL_STATE : break semi
+                    | continue semi'''
     p[0] = ASTNode('NORMAL_STATE_CONTROL', p[1:])
 
 
@@ -320,6 +326,7 @@ def p_select_follow(p):
     '''SELECT_FOLLOW : else lc CODE_LIST rc
                      | empty'''
     p[0] = ASTNode('SELECT_FOLLOW', [p[3]] if len(p) > 2 else p[1:])
+
 
 
 def p_loop_state(p):

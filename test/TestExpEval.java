@@ -61,25 +61,23 @@ public class TestExpEval {
 
     public static String nextToken(String str, int startIdx){
         int len = str.length();
-        if(isOp(str.substring(startIdx, (startIdx + 1)))){
-            return str.substring(startIdx, (startIdx + 1));
-        }
         String res = "";
+        if(isOp(str.substring(startIdx, startIdx + 1))){
+            return str.substring(startIdx, startIdx + 1);
+        }
         while(startIdx < len){
-            if(isOp(str.substring(startIdx, (startIdx + 1)))){
-                break;
-            }else if(str.charAt(startIdx) == ' '){
+            if(isOp(str.substring(startIdx, startIdx + 1))){
                 break;
             }
-            else{
-                res = (res + str.substring(startIdx, (startIdx + 1)));
-                startIdx = (startIdx+1);
+            if(str.charAt(startIdx) == ' '){
+                break;
             }
+            res = (res + str.substring(startIdx, (startIdx + 1)));
+            startIdx = (startIdx+1);
+
         }
         return res;
     }
-
-
     public static String infixToReversePolishExp(String exp){
         exp = (exp + "#");
         Stack opSt = new Stack();
@@ -123,7 +121,7 @@ public class TestExpEval {
         }
         return reversePolish;
     }
-
+    
     public static int computeReversePolish(String rpExp){
         rpExp = (rpExp + "#");
         int i = 0;

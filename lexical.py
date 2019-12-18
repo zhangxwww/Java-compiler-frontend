@@ -34,7 +34,8 @@ reserved = {
     'true': 'true',
     'false': 'false',
     'null': 'null',
-    'new': 'new'
+    'new': 'new',
+    'import': 'import'
 }
 
 tokens = (
