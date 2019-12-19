@@ -21,6 +21,7 @@ reserved = {
     'int': 'int',
     'String': 'string',
     'void': 'void',
+    'Object': 'object',
 
     # built-in non-primitive classes
     'Stack': 'Stack',

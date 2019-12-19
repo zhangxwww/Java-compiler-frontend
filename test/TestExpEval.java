@@ -85,6 +85,7 @@ public class TestExpEval {
         String topChar = "";
         String ch = "";
         int len = 0;
+        Object top = "";
         exp = exp+"#";
         ch = nextToken(exp, i);
         opSt.push("#");

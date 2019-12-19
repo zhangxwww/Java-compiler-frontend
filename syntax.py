@@ -115,7 +115,8 @@ def p_type_begin(p):
                   | char
                   | int
                   | string
-                  | void'''
+                  | void
+                  | object'''
     p[0] = ASTNode('TYPE_BEGIN', [p[1]])
 
 
