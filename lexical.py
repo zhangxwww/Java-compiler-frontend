@@ -22,6 +22,9 @@ reserved = {
     'String': 'string',
     'void': 'void',
 
+    # built-in non-primitive classes
+    'Stack': 'Stack',
+
     # control
     'break': 'break',
     'continue': 'continue',
@@ -35,7 +38,9 @@ reserved = {
     'false': 'false',
     'null': 'null',
     'new': 'new',
-    'import': 'import'
+    'import': 'import',
+    'java': 'java',
+    'util':'util'
 }
 
 tokens = (
@@ -56,6 +61,7 @@ tokens = (
              'greater',
              'leq',
              'geq',
+             'not',
 
              # punctuation
              'semi',
@@ -71,7 +77,7 @@ tokens = (
              'id',
              'integer',
              'chr',
-             'str',
+             'str'
          ) + tuple(reserved.values())
 
 t_add = r'\+'
@@ -89,6 +95,7 @@ t_less = r'<'
 t_greater = r'>'
 t_leq = r'<='
 t_geq = r'>='
+t_not = r'!'
 
 t_semi = r';'
 t_comma = r','
@@ -99,7 +106,6 @@ t_lb = r'\['
 t_rb = r'\]'
 t_lc = r'\{'
 t_rc = r'\}'
-
 
 def t_id(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'

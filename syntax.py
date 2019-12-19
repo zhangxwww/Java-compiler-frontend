@@ -48,14 +48,22 @@ precedence = (
 
 def p_program(p):
     'PROGRAM : IMPORT_STATE PERMISSION class id lc DEFINE_LIST rc'
-    p[0] = ASTNode('PROGRAM', [p[2], p[4], p[6]])
+    p[0] = ASTNode('PROGRAM', [p[1], p[2], p[4], p[6]])
 
 def p_import_state(p):
     '''IMPORT_STATE : empty
-                    | import id ID_FOLLOW semi'''
+                    | import java dot BUILT_IN_PACKAGE dot BUILT_IN_CLASS semi'''
     if len(p) > 2:
-        p[0] = ASTNode('IMPORT_STATE', p[2:])
+        p[0] = ASTNode('IMPORT_STATE', [p[2],p[4],p[6]])
 
+def p_built_in_package(p):
+    '''BUILT_IN_PACKAGE : util'''
+    p[0] = ASTNode('BUILT_IN_PACKAGE', [p[1]])
+
+
+def p_non_primitive_built_in_class(p):
+    '''BUILT_IN_CLASS : Stack'''
+    p[0] = ASTNode("BUILT_IN_CLASS", [p[1]])
 
 def p_permission(p):
     '''PERMISSION : private
@@ -150,8 +158,12 @@ def p_term_before(p):
 
 def p_relation_exp(p):
     '''RELATION_EXP : REL_OP COMPUTE_EXP
+                    | not lp COMPUTE_EXP rp
                     | empty'''
-    children = [p[1].children[0], p[2]] if len(p) == 3 else [None]
+    if len(p) < 5:
+        children = [p[1].children[0], p[2]] if len(p) == 3 else [None]
+    else:
+        children = [p[1], p[3]]
     p[0] = ASTNode('RELATION_EXP', children)
 
 
@@ -163,7 +175,8 @@ def p_term(p):
             | integer
             | null
             | true
-            | false'''
+            | false
+            | empty'''
     p[0] = ASTNode('TERM', p[1:] if len(p) < 4 else [p[2]])
 
 
@@ -261,6 +274,7 @@ def p_block(p):
 def p_local_define_list(p):
     '''LOCAL_DEFINE_LIST : LOCAL_VAR_DEFINE LOCAL_DEFINE_LIST
                          | LOCAL_ARRAY_DEFINE LOCAL_DEFINE_LIST
+                         | LOCAL_VAR_DEFINE_WITH_CONSTRUCTOR LOCAL_DEFINE_LIST
                          | empty'''
     if len(p) > 2:
         children = [p[1]]
@@ -272,8 +286,13 @@ def p_local_define_list(p):
 
 
 def p_local_var_define(p):
-    'LOCAL_VAR_DEFINE : TYPE id assign EXP semi'
+    '''LOCAL_VAR_DEFINE : TYPE id assign EXP semi'''
     p[0] = ASTNode('LOCAL_VAR_DEFINE', p[1:3] + [p[4]])
+
+def p_local_var_define_with_constructor(p):
+    '''LOCAL_VAR_DEFINE_WITH_CONSTRUCTOR : BUILT_IN_CLASS id assign new BUILT_IN_CLASS lp ARGS rp semi'''
+    if len(p)>2:
+        p[0] = ASTNode('LOCAL_VAR_DEFINE_WITH_CONSTRUCTOR', p[1:3] + p[5:])
 
 
 def p_local_array_define(p):

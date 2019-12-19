@@ -62,7 +62,10 @@ def GenerateCode(node):
             return str(node)
 
     if node.type == 'PROGRAM':
-        res = res + GenerateCode(node.children[2])
+        res = res + GenerateCode(node.children[0]) + GenerateCode(node.children[3])
+
+    if node.type == 'IMPORT_STATE':
+        res = res + "import %s.%s.%s;" % (node.children[0], node.children[1].children[0], node.children[2].children[0])
 
     if node.type == 'PERMISSION':
         pass
@@ -154,6 +157,9 @@ def GenerateCode(node):
 
     if node.type == 'LOCAL_VAR_DEFINE':
         res = res + 'let %s=%s;' % (GenerateCode(node.children[1]), GenerateCode(node.children[2]))
+
+    if node.type == 'LOCAL_VAR_DEFINE_WITH_CONSTRUCTOR':
+        res = res + 'let %s=new %s(%s);' % (GenerateCode(node.children[1]), GenerateCode(node.children[0].children[0]), GenerateCode(node.children[4]))
 
     if node.type == 'CODE_LIST':
         res = res + ''.join([GenerateCode(c) for c in node.children])
