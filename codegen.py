@@ -65,7 +65,35 @@ def GenerateCode(node):
         res = res + GenerateCode(node.children[0]) + GenerateCode(node.children[3])
 
     if node.type == 'IMPORT_STATE':
-        res = res + "import %s.%s.%s;" % (node.children[0], node.children[1].children[0], node.children[2].children[0])
+        is_java_util_stack = False
+        if node.children[0] == 'java':
+            if node.children[1].children[0] == 'util':
+                if node.children[2].children[0] == 'Stack':
+                    is_java_util_stack = True
+                    res = res \
+                    + \
+                    '''
+                    class Stack{
+                        constructor(){
+                            this.data = new Array();this.len = 0;
+                        }
+                        push(x){
+                            this.data.push(x);
+                            this.len += 1;
+                        }
+                        pop(){
+                            if(this.len>0){
+                                this.len -= 1;
+                            }
+                            return this.data.pop();
+                        }
+                        empty(){
+                            return this.len <= 0;
+                        }
+                    }
+                    '''
+        if not is_java_util_stack:
+            res = res + "import %s.%s.%s;" % (node.children[0], node.children[1].children[0], node.children[2].children[0])
 
     if node.type == 'PERMISSION':
         pass
@@ -88,7 +116,14 @@ def GenerateCode(node):
         res = res + '%s' % ''.join([GenerateCode(c) for c in node.children])
 
     if node.type == 'COMPUTE_EXP':
-        res = res + '%s' % ''.join([GenerateCode(c) for c in node.children])
+        is_Integer_dot_call = False
+        if len(node.children) >= 2:
+            if node.children[0] in ['Integer', 'Float']:
+                if hasattr(node.children[1], "type") and (node.children[1].type == 'ID_FOLLOW_DOT'):
+                    is_Integer_dot_call = True
+                    res = res + '%s%s' % (GenerateCode(node.children[1].children[0]), GenerateCode(node.children[1].children[1]))
+        if not is_Integer_dot_call:
+            res = res + '%s' % ''.join([GenerateCode(c) for c in node.children])
 
     if node.type == 'TERM_BEFORE':
         res = res + ''.join([GenerateCode(c) for c in node.children])

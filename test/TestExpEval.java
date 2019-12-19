@@ -135,4 +135,63 @@ public class TestExpEval {
         }
         return reversePolish;
     }
+
+    public static float computeReversePolish(String rpExp){
+        int i = 0;
+        Stack st = new Stack();
+        String token = "";
+        String res = "";
+        String s1 = "";
+        String s2 = "";
+        float i1 = 0;
+        float i2 = 0;
+        float i3 = 0;
+        float rtn = 0;
+        int len = 0;
+        Object top = "";
+        rpExp = rpExp + "#";
+        token = nextToken(rpExp, i);
+        while(token.charAt(0) != '#'){
+            len = token.length();
+            i = (i+len);
+            if(isOp(token)){
+                top = st.pop();
+                s1 = top.toString();
+                top = st.pop();
+                s2 = top.toString();
+                i1 = Float.parseFloat(s1);
+                i2 = Float.parseFloat(s2);
+                if(token.charAt(0) == '+'){
+                    i3 = i2+i1;
+                    st.push(i3);
+                }
+                if(token.charAt(0) == '-'){
+                    i3 = i2-i1;
+                    st.push(i3);
+                }
+                if(token.charAt(0) == '*'){
+                    i3 = i2*i1;
+                    st.push(i3);
+                }
+                if(token.charAt(0) == '/'){
+                    i3 = i2/i1;
+                    st.push(i3);
+                }
+            }else{
+                st.push(token);
+                i = i+1;
+            }
+            token = nextToken(rpExp, i);
+        }
+        top = st.pop();
+        res = top.toString();
+        rtn = Float.parseFloat(res);
+        return rtn;
+    }
+
+    public static void main(String[]  args){
+        System.out.println(computeReversePolish(infixToReversePolishExp("21*5+(6-4/4)*2-(100*52)")));
+        System.out.println(computeReversePolish(infixToReversePolishExp("4444*34330/5+3*3/2-(2*3/5/23234)")));
+    }
+
 }

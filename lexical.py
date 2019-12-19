@@ -22,6 +22,7 @@ reserved = {
     'String': 'string',
     'void': 'void',
     'Object': 'object',
+    'float' : 'float',
 
     # built-in non-primitive classes
     'Stack': 'Stack',
