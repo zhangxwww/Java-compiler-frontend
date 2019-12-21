@@ -159,6 +159,7 @@ public class TestExpEval {
                 s1 = top.toString();
                 top = st.pop();
                 s2 = top.toString();
+
                 i1 = Float.parseFloat(s1);
                 i2 = Float.parseFloat(s2);
                 if(token.charAt(0) == '+'){
@@ -190,6 +191,7 @@ public class TestExpEval {
     }
 
     public static void main(String[]  args){
+        System.out.println(infixToReversePolishExp("21*5+(6-4/4)*2-(100*52)"));
         System.out.println(computeReversePolish(infixToReversePolishExp("21*5+(6-4/4)*2-(100*52)")));
         System.out.println(computeReversePolish(infixToReversePolishExp("4444*34330/5+3*3/2-(2*3/5/23234)")));
     }

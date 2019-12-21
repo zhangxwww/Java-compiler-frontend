@@ -1,0 +1,1 @@
+lp EXP rp放TERM那感觉不太合适。。直接EXP : lp EXP rp可能更好

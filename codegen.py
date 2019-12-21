@@ -69,6 +69,10 @@ class CodeGenerator:
             elif numberOfChildren == 2:
                 id = node.children[0]
                 follow = node.children[1]
+                if id == 'Float' and follow.type == "ID_FOLLOW_DOT":
+                    self.counter += 1
+                    res = 'let v%d=%s;' % (self.counter, self.generateCode(follow)[1:])
+                    return res, 'v%d' % self.counter
                 if follow.type == 'ID_FOLLOW_INDEX':
                     preamble, varname = self.generateTAC(follow.children[0])
                     self.counter = self.counter + 1
@@ -137,6 +141,8 @@ class CodeGenerator:
                 return '==='
             elif str(node) == '!=':
                 return '!=='
+            elif str(node) == ';':
+                return ';\n'
             else:
                 return str(node)
 
@@ -214,7 +220,6 @@ class CodeGenerator:
                 [self.generateCode(c) + (',' if i < leng - 1 else '') for (i, c) in enumerate(node.children)])
 
         if node.type == 'ID_FOLLOW_DOT':
-            print(node.children[0])
             is_length_call = False
             try:
                 if node.children[0] == 'length' and node.children[1].type == 'ID_FOLLOW_CALL':
@@ -262,6 +267,7 @@ class CodeGenerator:
             res = res + ''.join([self.generateCode(c) for c in node.children])
 
         if node.type == 'CODE':
+            print(node)
             res = res + self.generateCode(node.children[0])
 
         if node.type == 'NORMAL_STATE_ASSIGN':
