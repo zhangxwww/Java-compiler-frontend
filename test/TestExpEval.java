@@ -159,6 +159,7 @@ public class TestExpEval {
                 s1 = top.toString();
                 top = st.pop();
                 s2 = top.toString();
+
                 i1 = Float.parseFloat(s1);
                 i2 = Float.parseFloat(s2);
                 if(token.charAt(0) == '+'){

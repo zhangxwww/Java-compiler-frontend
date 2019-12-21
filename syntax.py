@@ -19,23 +19,23 @@ class ASTNode:
 
     def __repr__(self):
         res = '<{}>'.format(self.type) + '\n'
-        '''
         child_res = []
-        for child in self.children:
-            child_res.append(child.__repr__())
+        if self.children is not None and len(self.children) > 0:
+            for child in self.children:
+                child_res.append(child.__repr__())
         for r in child_res:
             res = res + '-'
             lines = r.split('\n')
             for line in lines:
                 line = '  ' + line
                 res = res + line + '\n'
-        '''
         return res
 
 
 start = 'PROGRAM'
 
 precedence = (
+    ('right', 'inc', 'not'),
     ('left', 'or'),
     ('left', 'and'),
     ('left', 'equal', 'neq'),
@@ -50,11 +50,13 @@ def p_program(p):
     'PROGRAM : IMPORT_STATE PERMISSION class id lc DEFINE_LIST rc'
     p[0] = ASTNode('PROGRAM', [p[1], p[2], p[4], p[6]])
 
+
 def p_import_state(p):
     '''IMPORT_STATE : empty
                     | import java dot BUILT_IN_PACKAGE dot BUILT_IN_CLASS semi'''
     if len(p) > 2:
-        p[0] = ASTNode('IMPORT_STATE', [p[2],p[4],p[6]])
+        p[0] = ASTNode('IMPORT_STATE', [p[2], p[4], p[6]])
+
 
 def p_built_in_package(p):
     '''BUILT_IN_PACKAGE : util'''
@@ -62,8 +64,10 @@ def p_built_in_package(p):
 
 
 def p_non_primitive_built_in_class(p):
-    '''BUILT_IN_CLASS : Stack'''
+    '''BUILT_IN_CLASS : Stack
+                      | Scanner'''
     p[0] = ASTNode("BUILT_IN_CLASS", [p[1]])
+
 
 def p_permission(p):
     '''PERMISSION : private
@@ -132,75 +136,44 @@ def p_type_follow(p):
 
 
 def p_exp(p):
-    'EXP : COMPUTE_EXP RELATION_EXP'
-    children = [p[1]]
-    if p[2].children[0] is not None:
-        children += p[2].children[:]
-    p[0] = ASTNode('EXP', children)
-
-
-def p_compute_exp(p):
-    'COMPUTE_EXP : TERM_BEFORE TERM'
-    t = p[2].children[:]
-    f = p[1].children[:]
-    if f[0] is not None:
-        t = f + t
-    p[0] = ASTNode('COMPUTE_EXP', t)
-
-
-def p_term_before(p):
-    '''TERM_BEFORE : COMPUTE_EXP BIN_OP
-                   | empty'''
-    if len(p) == 3:
-        children = [p[1], p[2].children[0]]
-    else:
-        children = [None]
-    p[0] = ASTNode('TERM_BEFORE', children)
-
-
-def p_relation_exp(p):
-    '''RELATION_EXP : REL_OP COMPUTE_EXP
-                    | not lp COMPUTE_EXP rp
-                    | empty'''
-    if len(p) < 5:
-        children = [p[1].children[0], p[2]] if len(p) == 3 else [None]
-    else:
-        children = [p[1], p[3]]
-    p[0] = ASTNode('RELATION_EXP', children)
+    '''EXP : EXP BIN_OP EXP
+           | UN_OP EXP
+           | TERM'''
+    p[0] = ASTNode('EXP', p[1:])
 
 
 def p_term(p):
-    '''TERM : lp COMPUTE_EXP rp
+    '''TERM : lp EXP rp
             | id ID_FOLLOW
             | chr
             | str
             | integer
             | null
             | true
-            | false
-            | empty'''
+            | false '''
     p[0] = ASTNode('TERM', p[1:] if len(p) < 4 else [p[2]])
 
 
-def p_bin_op(p):
+def p_binop(p):
     '''BIN_OP : add
               | sub
               | mul
               | div
               | and
               | or
-              | assign'''
-    p[0] = ASTNode('BIN_OP', p[1:])
-
-
-def p_rel_op(p):
-    '''REL_OP : equal
+              | equal
               | neq
               | less
               | greater
               | leq
               | geq'''
-    p[0] = ASTNode('REL_OP', p[1:])
+    p[0] = ASTNode('BIN_OP', p[1:])
+
+
+def p_unop(p):
+    '''UN_OP : inc
+             | not'''
+    p[0] = ASTNode('UN_OP', p[1:])
 
 
 def p_id_follow_call(p):
@@ -291,9 +264,10 @@ def p_local_var_define(p):
     '''LOCAL_VAR_DEFINE : TYPE id assign EXP semi'''
     p[0] = ASTNode('LOCAL_VAR_DEFINE', p[1:3] + [p[4]])
 
+
 def p_local_var_define_with_constructor(p):
     '''LOCAL_VAR_DEFINE_WITH_CONSTRUCTOR : BUILT_IN_CLASS id assign new BUILT_IN_CLASS lp ARGS rp semi'''
-    if len(p)>2:
+    if len(p) > 2:
         p[0] = ASTNode('LOCAL_VAR_DEFINE_WITH_CONSTRUCTOR', p[1:3] + p[5:])
 
 
@@ -315,26 +289,26 @@ def p_code_list(p):
 
 
 def p_code(p):
-    '''CODE : NORMAL_STATE
+    '''CODE : NORMAL_STATE semi
             | SELECT_STATE
             | LOOP_STATE
-            | RETURN_STATE'''
+            | RETURN_STATE semi'''
     p[0] = ASTNode('CODE', p[1:])
 
 
 def p_normal_state_assign(p):
-    'NORMAL_STATE : id ID_FOLLOW assign EXP semi'
+    'NORMAL_STATE : id ID_FOLLOW assign EXP'
     p[0] = ASTNode('NORMAL_STATE_ASSIGN', [p[1], p[2], p[4]])
 
 
 def p_normal_state_call(p):
-    'NORMAL_STATE : id ID_FOLLOW semi'
+    'NORMAL_STATE : id ID_FOLLOW'
     p[0] = ASTNode('NORMAL_STATE_CALL', [p[1], p[2]])
 
 
 def p_normal_state_control(p):
-    '''NORMAL_STATE : break semi
-                    | continue semi'''
+    '''NORMAL_STATE : break
+                    | continue'''
     p[0] = ASTNode('NORMAL_STATE_CONTROL', p[1:])
 
 
@@ -349,7 +323,6 @@ def p_select_follow(p):
     p[0] = ASTNode('SELECT_FOLLOW', [p[3]] if len(p) > 2 else p[1:])
 
 
-
 def p_loop_state(p):
     '''LOOP_STATE : FOR_LOOP
                   | WHILE_LOOP'''
@@ -357,7 +330,7 @@ def p_loop_state(p):
 
 
 def p_for_loop(p):
-    'FOR_LOOP : for lp EXP semi EXP semi EXP rp lc CODE_LIST rc'
+    'FOR_LOOP : for lp NORMAL_STATE semi EXP semi NORMAL_STATE rp lc CODE_LIST rc'
     p[0] = ASTNode('FOR_LOOP', [p[3], p[5], p[7], p[10]])
 
 
@@ -367,7 +340,7 @@ def p_while_loop(p):
 
 
 def p_return_state(p):
-    'RETURN_STATE : return RETURN_FOLLOW semi'
+    'RETURN_STATE : return RETURN_FOLLOW'
     p[0] = ASTNode('RETURN_STATE', p[2].children[:])
 
 

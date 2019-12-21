@@ -26,6 +26,7 @@ reserved = {
 
     # built-in non-primitive classes
     'Stack': 'Stack',
+    'Scanner': 'Scanner',
 
     # control
     'break': 'break',

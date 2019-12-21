@@ -3,7 +3,7 @@ import logging
 
 from lexical import lexer
 from syntax import parser
-from codegen import GenerateProgram
+from codegen import CodeGenerator
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -17,4 +17,5 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     s = open(filename).read()
     root = parser.parse(s, lexer=lexer, debug=log)
-    print(GenerateProgram(root))
+    cg = CodeGenerator(root)
+    print(cg.generateProgram())
