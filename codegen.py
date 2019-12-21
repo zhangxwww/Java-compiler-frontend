@@ -64,29 +64,29 @@ class CodeGenerator:
                     return self.generateTAC(node.children[0])
                 else:
                     self.counter = self.counter + 1
-                    res = 'let v%d=%s;' % (self.counter, self.generateCode(node.children[0]))
+                    res = 'let v%d=%s;\n' % (self.counter, self.generateCode(node.children[0]))
                     return res, 'v%d' % self.counter
             elif numberOfChildren == 2:
                 id = node.children[0]
                 follow = node.children[1]
                 if id == 'Float' and follow.type == "ID_FOLLOW_DOT":
                     self.counter += 1
-                    res = 'let v%d=%s;' % (self.counter, self.generateCode(follow)[1:])
+                    res = 'let v%d=%s;\n' % (self.counter, self.generateCode(follow)[1:])
                     return res, 'v%d' % self.counter
                 if follow.type == 'ID_FOLLOW_INDEX':
                     preamble, varname = self.generateTAC(follow.children[0])
                     self.counter = self.counter + 1
-                    res = '%s let v%d=%s[%s];' % (preamble, self.counter, self.generateCode(id), varname)
+                    res = '%s let v%d=%s[%s];\n' % (preamble, self.counter, self.generateCode(id), varname)
                     return res, 'v%d' % self.counter
                 if follow.type == 'ID_FOLLOW_DOT':
                     """
                     preamable, _ = self.generateTAC(follow.children[1])
                     self.counter = self.counter + 1
-                    res = '%s let v%d=%s.%s;' % (preamable, self.counter, self.generateCode(id), self.generateCode(follow))
+                    res = '%s let v%d=%s.%s;\n' % (preamable, self.counter, self.generateCode(id), self.generateCode(follow))
                     return res, self.counter
                     """
                     self.counter = self.counter + 1
-                    res = 'let v%d=%s%s;' % (self.counter, self.generateCode(id), self.generateCode(follow))
+                    res = 'let v%d=%s%s;\n' % (self.counter, self.generateCode(id), self.generateCode(follow))
                     return res, 'v%d' % self.counter
                 if follow.type == 'ID_FOLLOW_CALL':
                     arglist = node.children[1].children
@@ -103,11 +103,11 @@ class CodeGenerator:
                         res = res + varname
                         if i != lengthOfVarlist - 1:
                             res = res + ','
-                    res = res + ');'
+                    res = res + ');\n'
                     return res, 'v%d' % self.counter
                 if follow.type == 'ID_FOLLOW_EMPTY':
                     self.counter = self.counter + 1
-                    res = 'let v%d=%s;' % (self.counter, self.generateCode(id))
+                    res = 'let v%d=%s;\n' % (self.counter, self.generateCode(id))
                     return res, 'v%d' % self.counter
         if node.type == 'EXP':
             numberOfChildren = len(node.children)
@@ -117,13 +117,13 @@ class CodeGenerator:
             elif numberOfChildren == 2:
                 preamble, varname = self.generateTAC(node.children[1])
                 self.counter = self.counter + 1
-                res = '%s let v%d=%s%s;' % (preamble, self.counter, self.generateCode(node.children[0]), varname)
+                res = '%s let v%d=%s%s;\n' % (preamble, self.counter, self.generateCode(node.children[0]), varname)
                 return res, 'v%d' % self.counter
             elif numberOfChildren == 3:
                 preamble1, varname1 = self.generateTAC(node.children[0])
                 preamble2, varname2 = self.generateTAC(node.children[2])
                 self.counter = self.counter + 1
-                res = '%s %s let v%d=%s%s%s;' % (
+                res = '%s %s let v%d=%s%s%s;\n' % (
                     preamble1, preamble2,
                     self.counter,
                     varname1, self.generateCode(node.children[1]), varname2)
@@ -141,8 +141,8 @@ class CodeGenerator:
                 return '==='
             elif str(node) == '!=':
                 return '!=='
-            elif str(node) == ';':
-                return ';\n'
+            elif str(node) == ';\n':
+                return ';\n\n'
             else:
                 return str(node)
 
@@ -157,28 +157,29 @@ class CodeGenerator:
                         is_java_util_stack = True
                         res = res \
                               + \
-                              '''
-                              class Stack{
-                                  constructor(){
-                                      this.data = new Array();this.len = 0;
-                                  }
-                                  push(x){
-                                      this.data.push(x);
-                                      this.len += 1;
-                                  }
-                                  pop(){
-                                      if(this.len>0){
-                                          this.len -= 1;
-                                      }
-                                      return this.data.pop();
-                                  }
-                                  empty(){
-                                      return this.len <= 0;
-                                  }
-                              }
-                              '''
+'''
+class Stack{
+    constructor(){
+        this.data = new Array();
+        this.len = 0;
+    }
+    push(x){
+        this.data.push(x);
+        this.len += 1;
+    }
+    pop(){
+        if(this.len>0){
+            this.len -= 1;
+        }
+        return this.data.pop();
+    }
+    empty(){
+        return this.len <= 0;
+    }
+}
+'''
             if not is_java_util_stack:
-                res = res + "import %s.%s.%s;" % (
+                res = res + "import %s.%s.%s;\n" % (
                     node.children[0], node.children[1].children[0], node.children[2].children[0])
 
         if node.type == 'PERMISSION':
@@ -190,7 +191,7 @@ class CodeGenerator:
 
         if node.type == 'VAR_DEFINE':
             hook, varname = self.generateTAC(node.children[2])
-            res = res + '%svar %s=%s;' % (hook, node.children[1], varname)
+            res = res + '%svar %s=%s;\n' % (hook, node.children[1], varname)
 
         if node.type == 'FUNC_DEFINE':
             res = res + 'function %s(%s)%s' % (
@@ -210,9 +211,6 @@ class CodeGenerator:
 
         if node.type == 'BIN_OP' or node.type == 'UN_OP':
             res = res + self.generateCode(node.children[0])
-
-        if node.type == 'ID_FOLLOW_INDEX':
-            res = res + '[%s]' % self.generateCode(node.children[0])
 
         if node.type == 'ID_FOLLOW_CALL':
             leng = len(node.children)
@@ -249,17 +247,17 @@ class CodeGenerator:
             res = res + self.generateCode(node.children[1])
 
         if node.type == 'BLOCK':
-            res = res + '{%s}' % ''.join([self.generateCode(c) for c in node.children])
+            res = res + '{\n%s}\n' % ''.join([self.generateCode(c) for c in node.children])
 
         if node.type == 'LOCAL_DEFINE_LIST':
             return ' '.join([self.generateCode(c) for c in node.children])
 
         if node.type == 'LOCAL_VAR_DEFINE':
             hook, varname = self.generateTAC(node.children[2])
-            res = res + '%slet %s=%s;' % (hook, self.generateCode(node.children[1]), varname)
+            res = res + '%slet %s=%s;\n' % (hook, self.generateCode(node.children[1]), varname)
 
         if node.type == 'LOCAL_VAR_DEFINE_WITH_CONSTRUCTOR':
-            res = res + 'let %s=new %s(%s);' % (
+            res = res + 'let %s=new %s(%s);\n' % (
                 self.generateCode(node.children[1]), self.generateCode(node.children[0].children[0]),
                 self.generateCode(node.children[4]))
 
@@ -267,12 +265,11 @@ class CodeGenerator:
             res = res + ''.join([self.generateCode(c) for c in node.children])
 
         if node.type == 'CODE':
-            print(node)
             res = res + self.generateCode(node.children[0])
 
         if node.type == 'NORMAL_STATE_ASSIGN':
             hook, varname = self.generateTAC(node.children[2])
-            res = res + '%s%s%s=%s;' % (hook, self.generateCode(node.children[0]), self.generateCode(node.children[1]), varname)
+            res = res + '%s%s%s=%s;\n' % (hook, self.generateCode(node.children[0]), self.generateCode(node.children[1]), varname)
 
         if node.type == 'NORMAL_STATE_CALL':
             is_system_out_println = False
@@ -282,13 +279,13 @@ class CodeGenerator:
                         if node.children[1].children[0] == 'out':
                             if node.children[1].children[1].type == 'ID_FOLLOW_DOT':
                                 if node.children[1].children[1].children[0] == 'println':
-                                    res = res + 'console.log%s;' % (
+                                    res = res + 'console.log%s;\n' % (
                                         self.generateCode(node.children[1].children[1].children[1]))
                                     is_system_out_println = True
             except:
                 pass
             if not is_system_out_println:
-                res = res + '%s%s;' % (self.generateCode(node.children[0]), self.generateCode(node.children[1]))
+                res = res + '%s%s;\n' % (self.generateCode(node.children[0]), self.generateCode(node.children[1]))
 
         if node.type == 'NORMAL_STATE_CONTROL':
             res = res + self.generateCode(node.children[0])
@@ -304,7 +301,7 @@ class CodeGenerator:
             return self.generateCode(node.children[0])
 
         if node.type == 'FOR_LOOP':
-            res = '%s for(;%s;){%s%s}' % (
+            res = '%s for(;%s;){\n%s%s}\n' % (
                 self.generateCode(node.children[0]),
                 self.generateCode(node.children[1]),
                 self.generateCode(node.children[3]),
@@ -312,20 +309,20 @@ class CodeGenerator:
             )
 
         if node.type == 'WHILE_LOOP':
-            res = 'while(%s){%s}' % (self.generateCode(node.children[0]), self.generateCode(node.children[1]))
+            res = 'while(%s){\n%s}\n' % (self.generateCode(node.children[0]), self.generateCode(node.children[1]))
 
         if node.type == 'RETURN_STATE':
             if len(node.children) == 0:
-                res = res + 'return;'
+                res = res + 'return;\n'
             else:
                 hook, varname = self.generateTAC(node.children[0])
-                res = res + '%s return %s;' % (hook, varname)
+                res = res + '%s return %s;\n' % (hook, varname)
 
         if node.type == 'ARRAY_DEFINE' or node.type == 'LOCAL_ARRAY_DEFINE':
             if node.children[0].children[0] != node.children[2].children[0]:
                 print('Type Error!')
                 return
-            res = res + '%s=new Array(%s);' % (self.generateCode(node.children[1]), self.generateCode(node.children[3]))
+            res = res + '%s=new Array(%s);\n' % (self.generateCode(node.children[1]), self.generateCode(node.children[3]))
 
         if node.type == 'EMPTY':
             pass

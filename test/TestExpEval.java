@@ -191,7 +191,6 @@ public class TestExpEval {
     }
 
     public static void main(String[]  args){
-        System.out.println(infixToReversePolishExp("21*5+(6-4/4)*2-(100*52)"));
         System.out.println(computeReversePolish(infixToReversePolishExp("21*5+(6-4/4)*2-(100*52)")));
         System.out.println(computeReversePolish(infixToReversePolishExp("4444*34330/5+3*3/2-(2*3/5/23234)")));
     }
