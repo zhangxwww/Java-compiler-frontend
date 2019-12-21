@@ -50,6 +50,7 @@ class CodeGenerator:
     def __init__(self, root):
         self.counter = 0
         self.root = root
+        self.import_java_util_scanner = False
 
     def generateTAC(self, node):
         '''
@@ -150,11 +151,14 @@ class CodeGenerator:
             res = res + self.generateCode(node.children[0]) + self.generateCode(node.children[3])
 
         if node.type == 'IMPORT_STATE':
-            is_java_util_stack = False
+            special_import_cases = False
             if node.children[0] == 'java':
                 if node.children[1].children[0] == 'util':
+                    if node.children[2].children[0] == 'Scanner':
+                        self.import_java_util_scanner = True
+                        special_import_cases = True
                     if node.children[2].children[0] == 'Stack':
-                        is_java_util_stack = True
+                        special_import_cases = True
                         res = res \
                               + \
 '''
@@ -178,7 +182,7 @@ class Stack{
     }
 }
 '''
-            if not is_java_util_stack:
+            if not special_import_cases:
                 res = res + "import %s.%s.%s;\n" % (
                     node.children[0], node.children[1].children[0], node.children[2].children[0])
 
@@ -194,8 +198,10 @@ class Stack{
             res = res + '%svar %s=%s;\n' % (hook, node.children[1], varname)
 
         if node.type == 'FUNC_DEFINE':
-            res = res + 'function %s(%s)%s' % (
-                node.children[3], self.generateCode(node.children[4]), self.generateCode(node.children[5]))
+            if node.children[3] == 'input' and self.import_java_util_scanner:
+                res = res
+            else:
+                res = res + 'function %s(%s)%s' % (node.children[3], self.generateCode(node.children[4]), self.generateCode(node.children[5]))
 
         if node.type == 'TYPE':
             pass

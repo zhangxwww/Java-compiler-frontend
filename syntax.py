@@ -64,7 +64,8 @@ def p_built_in_package(p):
 
 
 def p_non_primitive_built_in_class(p):
-    '''BUILT_IN_CLASS : Stack'''
+    '''BUILT_IN_CLASS : Stack
+                      | Scanner'''
     p[0] = ASTNode("BUILT_IN_CLASS", [p[1]])
 
 

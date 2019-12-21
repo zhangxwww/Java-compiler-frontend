@@ -1,3 +1,5 @@
+import java.util.Scanner;
+
 public class Palindrome {
 
     String welcome = "Hello world";
@@ -14,6 +16,11 @@ public class Palindrome {
 			}
 		}
 		System.out.println("True");
+	}
+
+	private static String input(){
+		Scanner scanner = new Scanner(System. in);
+		return scanner. nextLine();
 	}
 
 	private int hello(int a, int b) {
