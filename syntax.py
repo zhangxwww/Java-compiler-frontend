@@ -19,17 +19,16 @@ class ASTNode:
 
     def __repr__(self):
         res = '<{}>'.format(self.type) + '\n'
-        '''
         child_res = []
-        for child in self.children:
-            child_res.append(child.__repr__())
+        if self.children is not None and len(self.children) > 0:
+            for child in self.children:
+                child_res.append(child.__repr__())
         for r in child_res:
             res = res + '-'
             lines = r.split('\n')
             for line in lines:
                 line = '  ' + line
                 res = res + line + '\n'
-        '''
         return res
 
 
