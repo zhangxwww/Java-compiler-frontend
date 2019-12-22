@@ -79,6 +79,7 @@ tokens = (
 
              'id',
              'integer',
+             'neginteger',
              'chr',
              'str'
          ) + tuple(reserved.values())
@@ -118,6 +119,12 @@ def t_id(t):
 
 def t_integer(t):
     r'[1-9][0-9]*|0'
+    t.value = int(t.value)
+    return t
+
+
+def t_neginteger(t):
+    r'-[1-9][0-9]*|0'
     t.value = int(t.value)
     return t
 

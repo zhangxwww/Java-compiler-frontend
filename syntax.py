@@ -148,6 +148,7 @@ def p_term(p):
             | chr
             | str
             | integer
+            | neginteger
             | null
             | true
             | false '''

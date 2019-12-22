@@ -1,5 +1,3 @@
-import java.util.Stack;
-
 public class TestExpEval {
 
     public static boolean isOp(String c){
@@ -80,7 +78,9 @@ public class TestExpEval {
     }
     public static String infixToReversePolishExp(String exp){
         String reversePolish = "";
-        Stack opSt = new Stack();
+        int size = 2*exp.length();
+        Object[] opSt = new Object[size+10];
+        int topPos = -1;
         int i = 0;
         String topChar = "";
         String ch = "";
@@ -88,36 +88,46 @@ public class TestExpEval {
         Object top = "";
         exp = exp+"#";
         ch = nextToken(exp, i);
-        opSt.push("#");
-        while(!(opSt.empty())){
+        topPos = topPos + 1;
+        opSt[topPos] = "#";
+        while(topPos >= 0){
             if (isOp(ch)){
                 if(ch.charAt(0) == '('){
-                    opSt.push(ch);
+                    topPos = topPos+1;
+                    opSt[topPos] = ch;
                 }
                 if(ch.charAt(0) == ')'){
-                    top = opSt.pop();
+                    top = opSt[topPos];
+                    topPos = topPos - 1;
                     topChar = top.toString();
                     while (topChar.charAt(0) != '('){
                         reversePolish = (reversePolish+topChar);
-                        top = opSt.pop();
+                        top = opSt[topPos];
+                        topPos = topPos - 1;
                         topChar = top.toString();
                     }
                 }
                 if(ch.charAt(0) != '(') {
                     if(ch.charAt(0) != ')'){
-                        top = opSt.pop();
+                        top = opSt[topPos];
+                        topPos = topPos - 1;
                         topChar = top.toString();
-                        opSt.push(topChar);
+                        topPos = topPos + 1;
+                        opSt[topPos] = topChar;
                         while (precede(topChar, ch)) {
                             reversePolish = reversePolish + topChar;
-                            top = opSt.pop();
+                            top = opSt[topPos];
+                            topPos = topPos - 1;
                             topChar = top.toString();
-                            top = opSt.pop();
+                            top = opSt[topPos];
+                            topPos = topPos - 1;
                             topChar = top.toString();
-                            opSt.push(topChar);
+                            topPos = topPos + 1;
+                            opSt[topPos] = topChar;
                         }
                         if (ch.charAt(0) != '#') {
-                            opSt.push(ch);
+                            topPos = topPos + 1;
+                            opSt[topPos] = ch;
                         }
                     }
                 }
@@ -129,7 +139,8 @@ public class TestExpEval {
                 i = (i+len);
                 ch = nextToken(exp, i);
             }else{
-                top = opSt.pop();
+                top = opSt[topPos];
+                topPos = topPos - 1;
                 ch = top.toString();
             }
         }
@@ -138,7 +149,9 @@ public class TestExpEval {
 
     public static float computeReversePolish(String rpExp){
         int i = 0;
-        Stack st = new Stack();
+        int size = 2*rpExp.length();
+        Object[] st = new Object[size+10];
+        int topPos = -1;
         String token = "";
         String res = "";
         String s1 = "";
@@ -155,36 +168,43 @@ public class TestExpEval {
             len = token.length();
             i = (i+len);
             if(isOp(token)){
-                top = st.pop();
+                top = st[topPos];
                 s1 = top.toString();
-                top = st.pop();
+                topPos = topPos - 1;
+                top = st[topPos];
                 s2 = top.toString();
-
+                topPos = topPos - 1;
                 i1 = Float.parseFloat(s1);
                 i2 = Float.parseFloat(s2);
                 if(token.charAt(0) == '+'){
                     i3 = i2+i1;
-                    st.push(i3);
+                    topPos = topPos + 1;
+                    st[topPos] = i3;
                 }
                 if(token.charAt(0) == '-'){
                     i3 = i2-i1;
-                    st.push(i3);
+                    topPos = topPos + 1;
+                    st[topPos] = i3;
                 }
                 if(token.charAt(0) == '*'){
                     i3 = i2*i1;
-                    st.push(i3);
+                    topPos = topPos + 1;
+                    st[topPos] = i3;
                 }
                 if(token.charAt(0) == '/'){
                     i3 = i2/i1;
-                    st.push(i3);
+                    topPos = topPos + 1;
+                    st[topPos] = i3;
                 }
             }else{
-                st.push(token);
+                topPos = topPos + 1;
+                st[topPos] = token;
                 i = i+1;
             }
             token = nextToken(rpExp, i);
         }
-        top = st.pop();
+        top = st[topPos];
+        topPos = topPos - 1;
         res = top.toString();
         rtn = Float.parseFloat(res);
         return rtn;
@@ -193,6 +213,7 @@ public class TestExpEval {
     public static void main(String[]  args){
         System.out.println(computeReversePolish(infixToReversePolishExp("21*5+(6-4/4)*2-(100*52)")));
         System.out.println(computeReversePolish(infixToReversePolishExp("4444*34330/5+3*3/2-(2*3/5/23234)")));
+        System.out.println(computeReversePolish(infixToReversePolishExp("4444*(34+2)/(5-1)+5/(23234-2333)")));
     }
 
 }
